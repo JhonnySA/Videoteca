@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load table_tags %}
+
+{% block titulo_pagina %}Lista de Alquileres{% endblock %}
+
+{% block contenido_pagina %}
+    <button id="agregar" type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalMaestro"
+            href="{% url 'alquileres:alquiler_agregar' %}"> Agregar
+    </button>
+    {% render_table tablaAlquiler %}
+
+{% endblock %}

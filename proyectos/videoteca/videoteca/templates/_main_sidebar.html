@@ -1,0 +1,49 @@
+{% extends 'adminlte/lib/_main_sidebar.html' %}
+
+{% block nav_links %}
+    <li>
+        <a href="{% url 'inicio:inicio' %}">
+            <i class="fa fa-home"></i> <span>Inicio</span>
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'inicio:cliente_vista' %}">
+            <i class="fa fa-user"></i> <span>Clientes</span>
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'inicio:actor_vista' %}">
+            <i class="fa fa-user-circle-o"></i> <span>Actores</span>
+        </a>
+    </li>
+    <li class="treeview">
+        <a href="#">
+            <i class="fa fa-product-hunt"></i> <span>Productos</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+            </span>
+        </a>
+        <ul class="treeview-menu">
+            <li>
+                <a href="{% url 'inicio:tipopelicula_vista' %}">
+                    <i class="fa fa-film"></i> Tipos Peliculas
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'inicio:formato_vista' %}">
+                    <i class="fa fa-play"></i> Formatos
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'inicio:pelicula_vista' %}">
+                    <i class="fa fa-file-movie-o"></i> Peliculas
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li>
+        <a href="{% url 'alquileres:alquiler_vista' %}">
+            <i class="fa fa-handshake-o"></i> <span>ALquileres</span>
+        </a>
+    </li>
+{% endblock nav_links %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+{% load table_tags %}
+
+{% block titulo_pagina %}Listado de Peliculas{% endblock %}
+
+{% block contenido_pagina %}
+    <button id="agregar" type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalMaestro"
+            href="{% url 'inicio:pelicula_agregar' %}"> Agregar
+    </button>
+    {% render_table tablaPelicula %}
+
+{% endblock %}

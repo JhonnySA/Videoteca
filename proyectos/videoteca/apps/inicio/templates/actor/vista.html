@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
+{% load table_tags %}
+
+{% block titulo_pagina %}Actores{% endblock %}
+
+{% block contenido_pagina %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalMaestro"
+            href="{% url 'inicio:actor_agregar' %}"> Agregar
+    </button>
+    {% render_table TablaActor %}
+{% endblock %}

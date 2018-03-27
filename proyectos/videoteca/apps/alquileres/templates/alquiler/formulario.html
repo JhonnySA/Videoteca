@@ -1,0 +1,260 @@
+{% load static %}
+
+{# Script necesario para activar al Combo Select 2 #}
+<script src="{% static 'select2/django_select2.js' %}"></script>
+
+{# Scripts necesarios para el DataTable #}
+{# <script src="{% static 'datatable/js/jquery.dataTables.js' %}"></script> #}
+
+{# Scritps necesario para el datetime wigwet #}
+
+
+<div class="modal-header">
+    <h5 class="modal-title">{% if form.instance.pk == None %}Agregando nuevo{% else %}Editando{% endif %} Alquiler</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+
+    <form id="formDetalleAlquiler" method="post" class="form" role="form" action="{{ request.path }}">
+        {% csrf_token %}
+        <div class="row">
+            <div class="text-center lead">
+                Informacion general
+            </div>
+            <div class="col-xs-12">
+                Cliente: {{ form.cliente }}
+            </div>
+
+            <div class="col-xs-6">
+                Fecha Adquisicion: {{ form.fechaadd }}
+            </div>
+            <div class="col-xs-6">
+                Fecha Devolucion: {{ form.fechadev }}
+            </div>
+            <div class="text-center lead">
+                Detalle de Alquiler
+            </div>
+
+            <div class="col-xs-12">
+                Pelicula: {{ form.pelicula }}
+            </div>
+            <div class="col-xs-4">
+                Formato: {{ form.formato }}
+            </div>
+            <div class="col-xs-4">
+                Costo: {{ form.costo }}
+            </div>
+            <div class="col-xs-4">
+                Cantidad: {{ form.cantidad }}
+            </div>
+            <div class="col-xs-12">
+                <div class="pull-right">
+                    <button type="button" id="btnAdd" class="btn btn-primary">
+                        Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-xs-12">
+                Detalle: {{ form.detalle }}
+            </div>
+
+            <table filas="0" id="tablaNuevoAlquiler" class="display" width="100%" cellspacing="0">
+                <thead>
+                <tr>
+                    <td>Película</td>
+                    <td>Formato</td>
+                    <td>Costo</td>
+                    <td>Cantidad</td>
+                    <td>Quitar</td>
+                </tr>
+                </thead>
+            </table>
+
+        </div>
+
+        <div class="row">
+            <h4 class="text-center lead">
+                Costo acumulado: <input id="txtAcumulado" type="text" name="">
+            </h4>
+        </div>
+
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-info">Guardar</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+
+{# Bloque JavaScript #}
+<script type="application/javascript">
+    {# Crear la tabla con datatable de jquery #}
+    {# Costo acumulado #}
+    var acumulado = 0;
+
+    {# Contenedor de una lista de objetos al inicio vacia#}
+    xdata = [];
+
+    $("#tablaNuevoAlquiler").DataTable({
+        //retrieve: true,
+        data: [],
+        paging: false,
+        searching: false,
+        ordering: false,
+        /*columnDefs:[
+            {
+                targets: [-1],
+
+            }
+        ],*/
+        columns: [
+            {data: "pelicula"},
+            {data: "formato"},
+            {data: "costo"},
+            {data: "cantidad"},
+            {
+                data: "formatoid", render: function (data, type, row, meta) {
+                    return '<button class="btnDelete" type="button" class="btn btn-sm"><i class="fa fa-trash"></i> </button>';
+                }
+            }
+        ]
+    });
+
+    {# Evento click - Remover Fila de la tabla#}
+    $("#tablaNuevoAlquiler").on("click", ".btnDelete", function () {
+        fila = $(this).parent().parent();
+        datos = $("#tablaNuevoAlquiler").dataTable().fnGetData(fila);
+        indice = $(this).closest('tr').index();
+        console.log(indice);
+
+        {# Disminuir el costo acumulado #}
+        acumulado -= datos.costo * datos.cantidad;
+        $("#txtAcumulado").val(acumulado);
+
+        lista = $("#detalle").val().split("//");
+
+        lista.splice(indice, 1);
+
+
+        $("#detalle").val(lista.join("//"));
+        $("#tablaNuevoAlquiler").dataTable().fnDeleteRow($(this).parent().parent());
+        {# $("#detalle").val($("#detalle").val().split("//").splice(indice, 1).join("//")); #}
+
+    });
+
+    $("#btnAdd").on('click', function () {
+
+        obj = new Object();
+
+        obj.pelicula = $("#cbPelicula").select2('data')[0].text;
+        obj.formato = $("#cbFormato").select2('data')[0].text;
+        obj.formatoid = $("#cbFormato").val();
+        obj.costo = $("#txtCosto").val();
+        obj.cantidad = $("#id_cantidad").val();
+
+        $("#tablaNuevoAlquiler").dataTable().fnAddData(obj);
+        //xdata.push(obj);
+        //console.log(xdata);
+
+        {# Calcular el costo acumulado #}
+        acumulado += (obj.costo * obj.cantidad);
+        $("#txtAcumulado").val(acumulado);
+
+        //var val = $("#detalle").html() + $("#id_pelicula").val() + "," + $("#id_formato").val() + "," + $("#id_costo").val() + ";";
+        datosH = $("#detalle").val();
+        datosH += obj.formatoid + "/" + obj.cantidad + "/" + obj.costo + "//";
+        $("#detalle").val(datosH);
+    });
+
+    {# Para recuperar el detalle y cargarlo en el DataTable para edicion #}
+    {% if oAlquiler %}
+        {% for detalle in oAlquiler.detallealquiler_set.all %}
+            obj = new Object();
+
+            obj.pelicula = "{{ detalle.formato.pelicula.nombre }}";
+            obj.formato = "{{ detalle.formato.nombre }}";
+            obj.formatoid = {{ detalle.formato.id }};
+            obj.costo = {{ detalle.formato.costo}};
+            obj.cantidad = {{ detalle.cantidad }};
+
+            $("#tablaNuevoAlquiler").dataTable().fnAddData(obj);
+
+            datosH = $("#detalle").val();
+            datosH += obj.formatoid + "/" + obj.cantidad + "/" + obj.costo + "//";
+            $("#detalle").val(datosH);
+
+            acumulado += (obj.costo * obj.cantidad);
+            $("#txtAcumulado").val(acumulado);
+
+            console.log(obj);
+            console.log("{{ oAlquiler.id }}");
+
+        {% endfor %}
+    {% endif %}
+
+
+    {# Capturar el costo del formato segun cambie el select del comboFormato #}
+    $("#cbFormato").on('change', function () {
+        if ($(this).select2('data').length > 0) {
+            //console.log($(this).select2('data')[0].costo);
+            $("#txtCosto").val($(this).select2('data')[0].costo);
+        }
+
+    });
+
+    {# Refresh Tabla - Mensaje success de creacion correcta y ocultar modal #}
+    $("#formDetalleAlquiler").ajaxForm({
+        dataType: 'json',
+        target: "#modalMaestro",
+        success: function (res, status, xhr, form) {
+            if (res.value) {
+                {# Esto es para dar un mensaje que se puso en el views de pelicula en json #}
+                toastr["success"](res.msg);
+                $("#tablaAlquiler").dataTable().api().ajax.reload(null, false);
+                $("#modalMaestro").modal("hide");
+            }
+        },
+        error: function (res) {
+            $("#modalMaestro .modal-content").html(res.responseText);
+        }
+    });
+
+    $(document).ready(function () {
+        $("#cbFormato").select2({
+            ajax: {
+                data: function (params) {
+
+                    ids_formatos = "";
+
+                    lista = $("#detalle").val();
+                    console.log(lista);
+
+                    if (lista != "") {
+                        lista = lista.split("//");
+
+                        console.log(lista);
+                        console.log("Len: " + lista.length);
+
+                        lista.forEach(function (reg) {
+                            lista2 = reg.split("/");
+                            formato = lista2[0];
+                            ids_formatos += formato + "/";
+                        });
+                        console.log(ids_formatos);
+                    }
+
+                    return {
+                        term: params.term,
+                        ids: ids_formatos,
+                        page: params.page,
+                        field_id: $("#cbFormato").data("field_id"),
+                        pelicula: $("#cbPelicula").val() | 0
+                    }
+                }
+            }
+        });
+    })
+</script>
